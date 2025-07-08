@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tweets, generateId, extractHashtags } from '@/lib/data';
-import { CreateTweetRequest, TweetResponse } from '@/lib/types';
+import { Tweet, CreateTweetRequest, TweetResponse } from '@/lib/types';
 
 export async function POST(
   request: NextRequest,
@@ -32,8 +32,11 @@ export async function POST(
           }
           return null;
         };
-        parentTweet = findInReplies(tweet.replies);
-        if (parentTweet) break;
+        const foundTweet = findInReplies(tweet.replies);
+        if (foundTweet) {
+          parentTweet = foundTweet;
+          break;
+        }
       }
     }
     

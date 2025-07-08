@@ -23,8 +23,11 @@ export async function POST(
           }
           return null;
         };
-        tweet = findInReplies(mainTweet.replies);
-        if (tweet) break;
+        const foundTweet = findInReplies(mainTweet.replies);
+        if (foundTweet) {
+          tweet = foundTweet;
+          break;
+        }
       }
     }
     
