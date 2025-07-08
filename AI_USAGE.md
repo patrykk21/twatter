@@ -1,0 +1,1 @@
+- I started creating a scaffold for the application by prompting Claude in my IDE (nvim)
