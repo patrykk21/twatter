@@ -292,9 +292,9 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white min-h-screen">
-      <div className="sticky top-0 bg-white border-b border-gray-200 p-4">
-        <h1 className="text-xl font-bold text-gray-900">Twitter Clone</h1>
+    <div className="max-w-2xl mx-auto bg-black min-h-screen">
+      <div className="sticky top-0 bg-black border-b border-gray-800 p-4">
+        <h1 className="text-xl font-bold text-white">Twitter Clone</h1>
       </div>
       
       <TweetForm onSubmit={handleCreateTweet} />
@@ -307,7 +307,7 @@ export default function Home() {
       
       {loading ? (
         <div className="flex justify-center p-8">
-          <div className="text-gray-500">Loading tweets...</div>
+          <div className="text-gray-400">Loading tweets...</div>
         </div>
       ) : (
         <div>

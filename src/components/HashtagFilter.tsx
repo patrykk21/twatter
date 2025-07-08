@@ -8,15 +8,15 @@ interface HashtagFilterProps {
 
 export default function HashtagFilter({ selectedHashtag, onHashtagChange, availableHashtags }: HashtagFilterProps) {
   return (
-    <div className="border-b border-gray-200 p-4">
-      <h3 className="font-medium text-gray-900 mb-3">Filter by hashtag</h3>
+    <div className="border-b border-gray-800 p-4">
+      <h3 className="font-medium text-white mb-3">Filter by hashtag</h3>
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onHashtagChange(null)}
           className={`px-3 py-1 rounded-full text-sm ${
             selectedHashtag === null
               ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
           }`}
         >
           All
@@ -28,7 +28,7 @@ export default function HashtagFilter({ selectedHashtag, onHashtagChange, availa
             className={`px-3 py-1 rounded-full text-sm ${
               selectedHashtag === hashtag
                 ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
             }`}
           >
             #{hashtag}
