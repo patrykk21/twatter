@@ -274,9 +274,15 @@ The "For You" feed uses a multi-factor recommendation algorithm that analyzes us
 **Problem**: Next.js warning about client component props
 **Solution**: Proper client component structure for interactive UI elements
 
+### Challenge 5: Recommendation System Sync
+**Problem**: Newly created and liked tweets don't appear in "For You" feed without page refresh
+**Status**: Known issue - requires page refresh to see new tweets in personalized recommendations
+**Impact**: Minor UX issue that doesn't affect core functionality
+
 ## 🔮 Future Enhancements
 
 ### Short-term Improvements
+- [ ] Fix recommendation system sync issue
 - [ ] User authentication and profiles
 - [ ] Image/media upload support
 - [ ] Tweet search functionality

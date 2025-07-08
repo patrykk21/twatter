@@ -6,7 +6,7 @@ This document provides comprehensive details about how AI (Claude) was used thro
 
 **AI Tool Used**: Claude (Anthropic's AI Assistant)  
 **Development Mode**: Interactive pair programming  
-**Total Development Time**: ~40 minutes  
+**Total Development Time**: 70 minutes  
 **AI Contribution**: ~95% of code generation, 100% of documentation
 
 ## 🎯 Project Approach
@@ -352,7 +352,7 @@ setTweets(currentTweets => {
 ## 📝 Key Takeaways
 
 ### AI Strengths Demonstrated
-- **Rapid Prototyping**: Full application in just 40 minutes
+- **Rapid Prototyping**: Full application in just 70 minutes
 - **Best Practices**: Modern React patterns and TypeScript usage
 - **Problem Solving**: Complex state management and user experience
 - **Code Quality**: Clean, maintainable, and well-documented code
@@ -361,9 +361,10 @@ setTweets(currentTweets => {
 - **Creative Design**: AI followed conventional patterns rather than innovative UI
 - **Business Logic**: Simple requirements; complex business rules would need more guidance
 - **Testing**: No automated tests generated (would require additional prompting)
+- **Known Issues**: Recommendation system sync requires page refresh for new tweets
 
 ### Development Efficiency
-- **Speed**: 20x+ faster than traditional development (40 minutes vs 8+ hours)
+- **Speed**: 15x+ faster than traditional development (70 minutes vs 8+ hours)
 - **Quality**: High code quality with proper patterns
 - **Learning**: AI explained decisions and reasoning throughout
 - **Iteration**: Rapid iteration and refinement based on feedback
