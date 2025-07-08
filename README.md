@@ -225,30 +225,32 @@ The "For You" feed uses a multi-factor recommendation algorithm that analyzes us
 
 ## 🚧 Development Process
 
-### Phase 1: Foundation (Initial Setup)
+**Total Development Time: 70 minutes**
+
+### Phase 1: Foundation (Initial Setup) - 10 minutes
 - Next.js 15 project initialization
 - TypeScript configuration
 - Basic project structure
 
-### Phase 2: Backend Development
+### Phase 2: Backend Development - 15 minutes
 - REST API endpoint creation
 - Data models and types
 - In-memory data storage
 - CRUD operations implementation
 
-### Phase 3: Core UI Components
+### Phase 3: Core UI Components - 20 minutes
 - TweetCard component with nested replies
 - TweetForm for creating tweets
 - HashtagFilter for content filtering
 - Basic styling with Tailwind CSS
 
-### Phase 4: Advanced Features
+### Phase 4: Advanced Features - 15 minutes
 - Optimistic UI updates implementation
 - Error handling and rollback mechanisms
 - Hashtag extraction and filtering
 - Relative time formatting
 
-### Phase 5: Polish & Optimization
+### Phase 5: Polish & Optimization - 10 minutes
 - Dark mode theme implementation
 - TypeScript error resolution
 - ESLint configuration and fixes
