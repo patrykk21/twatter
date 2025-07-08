@@ -11,6 +11,7 @@ A feature-rich Twitter-like web application built with Next.js 15, React, and Ta
 - **Dark Mode**: Modern Twitter-like dark theme throughout
 - **Responsive Design**: Mobile-friendly interface with Tailwind CSS
 - **Real-time Updates**: Live tweet feed with relative timestamps
+- **"For You" Recommendations**: AI-powered tweet recommendations based on user interactions
 - **Mock Backend**: In-memory REST API for development and testing
 
 ## 🛠 Tech Stack
@@ -38,11 +39,13 @@ src/
 ├── components/
 │   ├── TweetCard.tsx         # Individual tweet display component
 │   ├── TweetForm.tsx         # Tweet creation form
-│   └── HashtagFilter.tsx     # Hashtag filtering interface
+│   ├── HashtagFilter.tsx     # Hashtag filtering interface
+│   └── FeedToggle.tsx        # Latest/For You view toggle
 └── lib/
     ├── types.ts              # TypeScript type definitions
     ├── data.ts               # Mock data and utility functions
-    └── utils.ts              # Helper functions (time formatting)
+    ├── utils.ts              # Helper functions (time formatting)
+    └── recommendations.ts    # Recommendation engine and user tracking
 ```
 
 ## 🚀 Getting Started
@@ -147,6 +150,51 @@ All user interactions provide immediate visual feedback:
 - **Mobile-first**: Optimized for mobile devices
 - **Flexible Layout**: Adapts to different screen sizes
 - **Touch-friendly**: Large click targets for mobile interaction
+
+## 🤖 Recommendation System
+
+### Algorithm Overview
+
+The "For You" feed uses a multi-factor recommendation algorithm that analyzes user behavior to surface relevant content:
+
+#### **Scoring Factors**:
+
+1. **Hashtag Similarity (Weight: 3x)**
+   - Tracks hashtags from previously liked tweets
+   - Recommends tweets with matching hashtags
+   - Higher preference scores for frequently liked hashtags
+
+2. **Author Preference (Weight: 2x)**
+   - Tracks authors whose tweets users have liked
+   - Recommends tweets from preferred authors
+   - Builds user taste profiles over time
+
+3. **Engagement Boost (Weight: 0.5x)**
+   - Promotes tweets with high like counts
+   - Considers reply engagement
+   - Uses logarithmic scaling to prevent outliers
+
+4. **Recency Factor (Weight: 0.5x)**
+   - Newer tweets get slight preference
+   - Decays over one week period
+   - Balances fresh content with relevance
+
+#### **Fallback Strategy**:
+- New users with no likes see popular tweets (sorted by engagement)
+- Prevents cold start problem
+- Encourages initial interaction
+
+#### **Technical Implementation**:
+- Real-time score calculation on each like action
+- In-memory user preference tracking
+- Optimistic UI updates for immediate feedback
+- Automatic recommendation refresh on new interactions
+
+### Usage Patterns
+
+1. **Latest Feed**: All tweets sorted by recency with hashtag filtering
+2. **For You Feed**: Personalized recommendations based on interaction history
+3. **Seamless Switching**: Toggle between views with state preservation
 
 ## 🔧 Technical Decisions
 

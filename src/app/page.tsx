@@ -5,11 +5,16 @@ import { Tweet } from '@/lib/types';
 import TweetCard from '@/components/TweetCard';
 import TweetForm from '@/components/TweetForm';
 import HashtagFilter from '@/components/HashtagFilter';
+import FeedToggle from '@/components/FeedToggle';
+import { trackLike, removeLike, generateRecommendations } from '@/lib/recommendations';
 
 export default function Home() {
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [selectedHashtag, setSelectedHashtag] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [feedView, setFeedView] = useState<'latest' | 'for-you'>('latest');
+  const [recommendedTweets, setRecommendedTweets] = useState<Tweet[]>([]);
+  const [likingTweets, setLikingTweets] = useState<Set<string>>(new Set());
 
   const fetchTweets = useCallback(async () => {
     setLoading(true);
@@ -21,6 +26,8 @@ export default function Home() {
       const data = await response.json();
       if (data.success) {
         setTweets(data.tweets);
+        // Update recommendations when tweets change
+        setRecommendedTweets(generateRecommendations(data.tweets));
       }
     } catch (error) {
       console.error('Error fetching tweets:', error);
@@ -94,26 +101,71 @@ export default function Home() {
   };
 
   const handleLike = async (tweetId: string) => {
+    // Prevent double-clicking
+    if (likingTweets.has(tweetId)) {
+      return;
+    }
+    
+    // Mark as liking
+    setLikingTweets(prev => new Set(prev).add(tweetId));
+    
+    // Find the tweet to track interaction
+    const findTweetById = (tweets: Tweet[], id: string): Tweet | null => {
+      for (const tweet of tweets) {
+        if (tweet.id === id) return tweet;
+        const found = findTweetById(tweet.replies, id);
+        if (found) return found;
+      }
+      return null;
+    };
+    
+    const likedTweet = findTweetById(tweets, tweetId);
+    if (likedTweet) {
+      trackLike(likedTweet);
+    }
+
     // Optimistic update
     const optimisticTweets = updateTweetInState(tweetId, (tweet) => ({
       ...tweet,
       likes: tweet.likes + 1
     }));
     setTweets(optimisticTweets);
+    
+    // Update recommendations based on new like
+    setRecommendedTweets(generateRecommendations(optimisticTweets));
 
     try {
       const response = await fetch(`/api/tweets/${tweetId}/like`, {
         method: 'POST'
       });
       const data = await response.json();
-      if (!data.success) {
+      if (data.success) {
+        // Success - optimistic update was correct, just remove from liking set
+        setLikingTweets(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(tweetId);
+          return newSet;
+        });
+      } else {
         // Rollback on failure
         const rollbackTweets = updateTweetInState(tweetId, (tweet) => ({
           ...tweet,
           likes: tweet.likes - 1
         }));
         setTweets(rollbackTweets);
-        console.error('Failed to like tweet');
+        
+        // Also rollback the like tracking
+        if (likedTweet) {
+          removeLike(likedTweet);
+        }
+        setRecommendedTweets(generateRecommendations(rollbackTweets));
+        
+        // Remove from liking set
+        setLikingTweets(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(tweetId);
+          return newSet;
+        });
       }
     } catch (error) {
       // Rollback on error
@@ -122,6 +174,19 @@ export default function Home() {
         likes: tweet.likes - 1
       }));
       setTweets(rollbackTweets);
+      
+      // Also rollback the like tracking
+      if (likedTweet) {
+        removeLike(likedTweet);
+      }
+      setRecommendedTweets(generateRecommendations(rollbackTweets));
+      
+      // Remove from liking set
+      setLikingTweets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(tweetId);
+        return newSet;
+      });
       console.error('Error liking tweet:', error);
     }
   };
@@ -291,6 +356,21 @@ export default function Home() {
     return Array.from(hashtags);
   };
 
+  const getDisplayTweets = () => {
+    if (feedView === 'for-you') {
+      return recommendedTweets;
+    }
+    
+    // Latest view with hashtag filtering
+    if (selectedHashtag) {
+      return tweets.filter(tweet => 
+        tweet.hashtags.includes(selectedHashtag.toLowerCase())
+      );
+    }
+    
+    return tweets;
+  };
+
   return (
     <div className="max-w-2xl mx-auto bg-black min-h-screen">
       <div className="sticky top-0 bg-black border-b border-gray-800 p-4">
@@ -299,11 +379,24 @@ export default function Home() {
       
       <TweetForm onSubmit={handleCreateTweet} />
       
-      <HashtagFilter
-        selectedHashtag={selectedHashtag}
-        onHashtagChange={setSelectedHashtag}
-        availableHashtags={getAvailableHashtags()}
+      <FeedToggle 
+        activeView={feedView}
+        onViewChange={(view) => {
+          setFeedView(view);
+          // Clear hashtag filter when switching to "For You"
+          if (view === 'for-you') {
+            setSelectedHashtag(null);
+          }
+        }}
       />
+      
+      {feedView === 'latest' && (
+        <HashtagFilter
+          selectedHashtag={selectedHashtag}
+          onHashtagChange={setSelectedHashtag}
+          availableHashtags={getAvailableHashtags()}
+        />
+      )}
       
       {loading ? (
         <div className="flex justify-center p-8">
@@ -311,16 +404,26 @@ export default function Home() {
         </div>
       ) : (
         <div>
-          {tweets.map(tweet => (
-            <TweetCard
-              key={tweet.id}
-              tweet={tweet}
-              onLike={handleLike}
-              onReply={handleReply}
-              onDelete={handleDelete}
-              onHashtagClick={handleHashtagClick}
-            />
-          ))}
+          {getDisplayTweets().length === 0 ? (
+            <div className="flex justify-center p-8">
+              <div className="text-gray-400">
+                {feedView === 'for-you' 
+                  ? 'Like some tweets to get personalized recommendations!' 
+                  : 'No tweets found.'}
+              </div>
+            </div>
+          ) : (
+            getDisplayTweets().map(tweet => (
+              <TweetCard
+                key={tweet.id}
+                tweet={tweet}
+                onLike={handleLike}
+                onReply={handleReply}
+                onDelete={handleDelete}
+                onHashtagClick={handleHashtagClick}
+              />
+            ))
+          )}
         </div>
       )}
     </div>
