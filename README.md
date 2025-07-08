@@ -1,4 +1,4 @@
-## Groupon interview test
+## Fake twatter clone
 
 Welcome to my solution :)
 
