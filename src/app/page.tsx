@@ -26,8 +26,6 @@ export default function Home() {
       const data = await response.json();
       if (data.success) {
         setTweets(data.tweets);
-        // Update recommendations when tweets change
-        setRecommendedTweets(generateRecommendations(data.tweets));
       }
     } catch (error) {
       console.error('Error fetching tweets:', error);
@@ -39,6 +37,11 @@ export default function Home() {
   useEffect(() => {
     fetchTweets();
   }, [fetchTweets]);
+
+  // Update recommendations whenever tweets change
+  useEffect(() => {
+    setRecommendedTweets(generateRecommendations(tweets));
+  }, [tweets]);
 
   const handleCreateTweet = async (content: string) => {
     // Create optimistic tweet
@@ -130,9 +133,6 @@ export default function Home() {
       likes: tweet.likes + 1
     }));
     setTweets(optimisticTweets);
-    
-    // Update recommendations based on new like
-    setRecommendedTweets(generateRecommendations(optimisticTweets));
 
     try {
       const response = await fetch(`/api/tweets/${tweetId}/like`, {
@@ -158,7 +158,6 @@ export default function Home() {
         if (likedTweet) {
           removeLike(likedTweet);
         }
-        setRecommendedTweets(generateRecommendations(rollbackTweets));
         
         // Remove from liking set
         setLikingTweets(prev => {
@@ -179,7 +178,6 @@ export default function Home() {
       if (likedTweet) {
         removeLike(likedTweet);
       }
-      setRecommendedTweets(generateRecommendations(rollbackTweets));
       
       // Remove from liking set
       setLikingTweets(prev => {
@@ -237,7 +235,12 @@ export default function Home() {
               };
             });
           };
-          return replaceOptimisticReply(currentTweets);
+          const updatedTweets = replaceOptimisticReply(currentTweets);
+          
+          // Update recommendations with the new reply
+          setRecommendedTweets(generateRecommendations(updatedTweets));
+          
+          return updatedTweets;
         });
       } else {
         // Rollback on failure
@@ -246,6 +249,7 @@ export default function Home() {
           replies: tweet.replies.filter(reply => reply.id !== optimisticReply.id)
         }));
         setTweets(rollbackTweets);
+        setRecommendedTweets(generateRecommendations(rollbackTweets));
         console.error('Failed to create reply');
       }
     } catch (error) {
@@ -255,6 +259,7 @@ export default function Home() {
         replies: tweet.replies.filter(reply => reply.id !== optimisticReply.id)
       }));
       setTweets(rollbackTweets);
+      setRecommendedTweets(generateRecommendations(rollbackTweets));
       console.error('Error replying to tweet:', error);
     }
   };
@@ -299,6 +304,7 @@ export default function Home() {
     // Optimistic delete
     const { updatedTweets, removedTweet } = removeTweetFromState(tweetId);
     setTweets(updatedTweets);
+    setRecommendedTweets(generateRecommendations(updatedTweets));
 
     try {
       const response = await fetch(`/api/tweets/${tweetId}`, {
@@ -308,34 +314,38 @@ export default function Home() {
       if (!data.success) {
         // Rollback on failure
         if (removedTweet) {
+          let rollbackTweets;
           if (removedTweet.parentId) {
             // Re-add to replies
-            const rollbackTweets = updateTweetInState(removedTweet.parentId, (tweet) => ({
+            rollbackTweets = updateTweetInState(removedTweet.parentId, (tweet) => ({
               ...tweet,
               replies: [...tweet.replies, removedTweet]
             }));
-            setTweets(rollbackTweets);
           } else {
             // Re-add to main tweets
-            setTweets([...tweets, removedTweet]);
+            rollbackTweets = [...tweets, removedTweet];
           }
+          setTweets(rollbackTweets);
+          setRecommendedTweets(generateRecommendations(rollbackTweets));
         }
         console.error('Failed to delete tweet');
       }
     } catch (error) {
       // Rollback on error
       if (removedTweet) {
+        let rollbackTweets;
         if (removedTweet.parentId) {
           // Re-add to replies
-          const rollbackTweets = updateTweetInState(removedTweet.parentId, (tweet) => ({
+          rollbackTweets = updateTweetInState(removedTweet.parentId, (tweet) => ({
             ...tweet,
             replies: [...tweet.replies, removedTweet]
           }));
-          setTweets(rollbackTweets);
         } else {
           // Re-add to main tweets
-          setTweets([...tweets, removedTweet]);
+          rollbackTweets = [...tweets, removedTweet];
         }
+        setTweets(rollbackTweets);
+        setRecommendedTweets(generateRecommendations(rollbackTweets));
       }
       console.error('Error deleting tweet:', error);
     }
@@ -421,6 +431,7 @@ export default function Home() {
                 onReply={handleReply}
                 onDelete={handleDelete}
                 onHashtagClick={handleHashtagClick}
+                allowHashtagClick={feedView === 'latest'}
               />
             ))
           )}

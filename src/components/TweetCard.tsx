@@ -10,9 +10,10 @@ interface TweetCardProps {
   onReply: (tweetId: string, content: string) => void;
   onDelete: (tweetId: string) => void;
   onHashtagClick: (hashtag: string) => void;
+  allowHashtagClick?: boolean;
 }
 
-export default function TweetCard({ tweet, onLike, onReply, onDelete, onHashtagClick }: TweetCardProps) {
+export default function TweetCard({ tweet, onLike, onReply, onDelete, onHashtagClick, allowHashtagClick = true }: TweetCardProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   
@@ -31,15 +32,26 @@ export default function TweetCard({ tweet, onLike, onReply, onDelete, onHashtagC
   const formatContent = (content: string) => {
     return content.split(' ').map((word, index) => {
       if (word.startsWith('#')) {
-        return (
-          <span
-            key={index}
-            className="text-blue-500 hover:text-blue-600 cursor-pointer"
-            onClick={() => onHashtagClick(word.substring(1))}
-          >
-            {word}{' '}
-          </span>
-        );
+        if (allowHashtagClick) {
+          return (
+            <span
+              key={index}
+              className="text-blue-500 hover:text-blue-600 cursor-pointer"
+              onClick={() => onHashtagClick(word.substring(1))}
+            >
+              {word}{' '}
+            </span>
+          );
+        } else {
+          return (
+            <span
+              key={index}
+              className="text-blue-400"
+            >
+              {word}{' '}
+            </span>
+          );
+        }
       }
       return word + ' ';
     });
@@ -133,6 +145,7 @@ export default function TweetCard({ tweet, onLike, onReply, onDelete, onHashtagC
                     onReply={onReply}
                     onDelete={onDelete}
                     onHashtagClick={onHashtagClick}
+                    allowHashtagClick={allowHashtagClick}
                   />
                 </div>
               ))}
